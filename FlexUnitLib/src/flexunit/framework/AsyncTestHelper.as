@@ -100,12 +100,11 @@ package flexunit.framework
            {
                if ( extraData != null )
                {
-                   func( objToPass, extraData );
+		   objToPass.push(extraData);
                }
-               else
-               {
-                   func( objToPass );
-               }
+
+	       func.apply(this, objToPass )
+
                func = null;
                objToPass = null;
                extraData = null;
@@ -123,7 +122,7 @@ package flexunit.framework
 
    //------------------------------------------------------------------------------
 
-       public function handleEvent( event : Object ) : void
+       public function handleEvent(... rest) : void
        {
            var wasReallyAsync : Boolean = timer.running;
 
@@ -132,7 +131,7 @@ package flexunit.framework
            if ( shouldFail )
                return;
 
-           objToPass = event;
+           objToPass = rest;
            if ( wasReallyAsync )
            {
                testResult.continueRun( testCase );
@@ -152,7 +151,7 @@ package flexunit.framework
        private var testResult : TestResult;
 
        private var shouldFail : Boolean = false;
-       private var objToPass : Object;
+       private var objToPass : Array;
 
        private var timer : Timer;
 
