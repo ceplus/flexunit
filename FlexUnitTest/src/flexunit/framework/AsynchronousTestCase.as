@@ -42,6 +42,14 @@ package flexunit.framework
        override public function setUp() : void
        {
            dispatcher = new AsynchronousValueDispatcher();
+	   assertionsOnTeardown = null;
+       }
+
+       override public function tearDown() : void
+       {
+	   if (null != assertionsOnTeardown) {
+	       assertionsOnTeardown();
+	   }
        }
    
        public function testInTimePass() : void
@@ -89,7 +97,8 @@ package flexunit.framework
    
        public function testSecondInTimePass() : void
        {
-           dispatcher.addEventListener("value", addAsync(handleFirstValueThenPassInTime, TIME_SYNC, VALUE_1));
+	   listeningAsync = addAsync(handleFirstValueThenPassInTime, TIME_SYNC, VALUE_1);
+           dispatcher.addEventListener("value", listeningAsync);
            dispatcher.dispatchValue(VALUE_1, TIME_PASS);
        }
    
@@ -97,13 +106,15 @@ package flexunit.framework
        {
            var actual : String = event.value;
            Assert.assertEquals(expected, actual);
-           addAsync(handleValue, TIME_SYNC, VALUE_2);
+	   dispatcher.removeEventListener("value", listeningAsync);
+           dispatcher.addEventListener("value", addAsync(handleValue, TIME_SYNC, VALUE_2));
            dispatcher.dispatchValue(VALUE_2, TIME_PASS);
        }
    
        public function testSecondInTimeFail() : void
        {
-           dispatcher.addEventListener("value", addAsync(handleFirstValueThenFailInTime, TIME_SYNC, VALUE_1));
+	   listeningAsync = addAsync(handleFirstValueThenFailInTime, TIME_SYNC, VALUE_1);
+           dispatcher.addEventListener("value", listeningAsync);
            dispatcher.dispatchValue(VALUE_1, TIME_PASS);
        }
    
@@ -111,13 +122,15 @@ package flexunit.framework
        {
            var actual : String = event.value;
            Assert.assertEquals(expected, actual);
-           addAsync(handleValue, TIME_SYNC, VALUE_2);
+	   dispatcher.removeEventListener("value", listeningAsync);
+           dispatcher.addEventListener("value", addAsync(handleValue, TIME_SYNC, VALUE_2));
            dispatcher.dispatchValue(VALUE_1, TIME_PASS);
        }
    
        public function testSecondTooLatePass() : void
        {
-           dispatcher.addEventListener("value", addAsync(handleFirstValueThenPassTooLate, TIME_SYNC, VALUE_1));
+	   listeningAsync = addAsync(handleFirstValueThenPassTooLate, TIME_SYNC, VALUE_1);
+           dispatcher.addEventListener("value", listeningAsync);
            dispatcher.dispatchValue(VALUE_1, TIME_PASS);
        }
    
@@ -125,13 +138,15 @@ package flexunit.framework
        {
            var actual : String = event.value;
            Assert.assertEquals(expected, actual);
-           addAsync(handleValue, TIME_SYNC, VALUE_2);
+	   dispatcher.removeEventListener("value", listeningAsync);
+           dispatcher.addEventListener("value", addAsync(handleValue, TIME_SYNC, VALUE_2));
            dispatcher.dispatchValue(VALUE_2, TIME_FAIL);
        }
    
        public function testSecondTooLateFail() : void
        {
-           dispatcher.addEventListener("value", addAsync(handleFirstValueThenFailTooLate, TIME_SYNC, VALUE_1));
+	   listeningAsync = addAsync(handleFirstValueThenFailTooLate, TIME_SYNC, VALUE_1);
+           dispatcher.addEventListener("value", listeningAsync);
            dispatcher.dispatchValue(VALUE_1, TIME_PASS);
        }
    
@@ -139,7 +154,8 @@ package flexunit.framework
        {
            var actual : String = event.value;
            Assert.assertEquals(expected, actual);
-           addAsync(handleValue, TIME_SYNC, VALUE_2);
+	   dispatcher.removeEventListener("value", listeningAsync);
+           dispatcher.addEventListener("value", addAsync(handleValue, TIME_SYNC, VALUE_2));
            dispatcher.dispatchValue(VALUE_1, TIME_FAIL);
        }
    
@@ -159,10 +175,101 @@ package flexunit.framework
            dispatcher.addEventListener("value", addAsync(handleValue, TIME_SYNC, VALUE_1, handleTimeoutFail));
            dispatcher.dispatchValue(VALUE_1, TIME_FAIL);
        }
-   
+
        public function handleTimeoutFail(expected : String) : void
        {
            fail("async method not called in time");
+       }
+
+       public function testTimeoutFunctionCalledTwiceInOrder() : void
+       {
+	   var actualFirstCalled : Boolean = false;
+	   var actualSecondCalled : Boolean = false;
+	   var actualInvocationCount : int = 0;
+	   var expectedInvocationCount : int = 2;
+
+	   function shouldCalledAtFirst(expected : String) : void {
+	       Assert.assertEquals(false, actualFirstCalled);
+	       Assert.assertEquals(false, actualSecondCalled);
+	       actualFirstCalled = true;
+	       actualInvocationCount++;
+	   };
+
+	   function shouldCalledAtSecond(expected : String) : void {
+	       Assert.assertEquals(true,  actualFirstCalled);
+	       Assert.assertEquals(false, actualSecondCalled);
+	       actualSecondCalled = true;
+	       actualInvocationCount++;
+	   }
+
+	   // registation order should NOT matter.
+
+           dispatcher.addEventListener("value", addAsync(handleValue, TIME_SYNC_MORE, VALUE_2, shouldCalledAtSecond));
+	   dispatcher.addEventListener("value", addAsync(handleValue, TIME_SYNC, VALUE_1, shouldCalledAtFirst));
+
+           dispatcher.dispatchValue(VALUE_1, TIME_FAIL);
+
+	   assertionsOnTeardown = function() : void {
+	       Assert.assertEquals(actualInvocationCount, expectedInvocationCount);
+	   };
+       }
+
+ 
+       public function testHandleEventForMultipleListenersOrdered() : void
+       {
+ 	   var listen1:Function = function l1(event : ValueEvent) : void { Assert.assertEquals(event.value, VALUE_1); };
+ 	   var dispatcher1:AsynchronousValueDispatcher = new AsynchronousValueDispatcher();
+	   dispatcher1.addEventListener("value", addAsync(listen1, TIME_SYNC));
+ 
+ 	   var listen2:Function = function l2(event : ValueEvent) : void { Assert.assertEquals(event.value, VALUE_2); };
+ 	   var dispatcher2:AsynchronousValueDispatcher = new AsynchronousValueDispatcher();
+	   dispatcher2.addEventListener("value", addAsync(listen2, TIME_SYNC));
+ 	   
+	   dispatcher1.dispatchValue(VALUE_1, 0);
+	   dispatcher2.dispatchValue(VALUE_2, TIME_PASS);
+       }
+ 
+       public function testHandleEventForMultipleListenersReverse() : void
+       {
+ 	   var listen1:Function = function l1(event : ValueEvent) : void { Assert.assertEquals(event.value, VALUE_1); };
+ 	   var dispatcher1:AsynchronousValueDispatcher = new AsynchronousValueDispatcher();
+	   dispatcher1.addEventListener("value", addAsync(listen1, TIME_SYNC));
+ 
+ 	   var listen2:Function = function l2(event : ValueEvent) : void { Assert.assertEquals(event.value, VALUE_2); };
+ 	   var dispatcher2:AsynchronousValueDispatcher = new AsynchronousValueDispatcher();
+	   dispatcher2.addEventListener("value", addAsync(listen2, TIME_SYNC));
+ 	   
+ 	   // expiration order should NOT matter
+	   dispatcher1.dispatchValue(VALUE_1, TIME_PASS);
+	   dispatcher2.dispatchValue(VALUE_2, 0);
+       }
+ 
+       public function testHandleEventAfterFirstEvent() : void
+       {
+ 	   var ncalled:int = 0;
+ 
+ 	   var secondListener:Function = addAsync(function(event:ValueEvent) : void {
+ 		   assertEquals(VALUE_2, event.value);
+ 		   ncalled++;
+ 	       }, TIME_SYNC);
+ 	   var firstListener:Function = addAsync(function(event:ValueEvent) : void {
+ 		   assertEquals(VALUE_2, event.value);
+ 		   ncalled++;
+ 	       }, TIME_SYNC);
+ 
+ 	   var dispatcher2:AsynchronousValueDispatcher = new AsynchronousValueDispatcher();
+	   dispatcher2.addEventListener("value", firstListener);
+	   dispatcher2.addEventListener("value", secondListener);
+ 
+	   dispatcher.addEventListener("value", addAsync(function(event:ValueEvent) : void {
+ 		       assertEquals(VALUE_1, event.value);
+ 		       dispatcher2.dispatchValue(VALUE_2, 0); 
+ 		   }, TIME_SYNC));
+ 	   dispatcher.dispatchValue(VALUE_1, 0); 
+ 
+ 	   assertionsOnTeardown = function() : void {
+ 	       Assert.assertEquals(2, ncalled);
+ 	   };
        }
    
        public function testNotReallyAsynchronousPass() : void
@@ -178,11 +285,14 @@ package flexunit.framework
        }
    
        private var dispatcher : AsynchronousValueDispatcher;
+       private var listeningAsync : Function;
+       private var assertionsOnTeardown : Function;
    
        private static var VALUE_1 : String = "value1";
        private static var VALUE_2 : String = "value2";
        public static var TIME_PASS : int = 50;
        public static var TIME_FAIL : int = 250;
        public static var TIME_SYNC : int = 100;
+       public static var TIME_SYNC_MORE : int = 110;
    }
 }

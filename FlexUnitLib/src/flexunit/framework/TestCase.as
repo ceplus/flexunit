@@ -300,10 +300,11 @@ package flexunit.framework
          {
              asyncTestHelper = new AsyncTestHelper( this, testResult );
          }
-         
-         asyncMethods.push( { func: func, timeout: timeout, extraData: passThroughData, failFunc: failFunc } );
-         
-         return asyncTestHelper.handleEvent;
+
+	 var async : Object = { func: func, timeout: timeout, extraData: passThroughData, failFunc: failFunc, phase: "fresh", asyncId: asyncCount++ };
+         asyncMethods.push(async);
+         asyncMethods.sortOn("timeout", Array.NUMERIC);
+         return asyncTestHelper.makeHandleEventFor(async);
       }
 
    //------------------------------------------------------------------------------
@@ -313,7 +314,10 @@ package flexunit.framework
        */
        public function hasAsync() : Boolean
        {
-           return asyncMethods.length > 0;
+           //return asyncMethods.length > 0;
+	   return asyncMethods.some(function(item:*, index:int, array:Array) : Boolean {
+		   return item.phase != "done";
+	       });
        }
 
    //------------------------------------------------------------------------------
@@ -327,14 +331,36 @@ package flexunit.framework
        }
 
    //------------------------------------------------------------------------------
+
       /**
        * The AsyncTestHelper will call this when it's ready for to start the next async.  It's possible that
        * it will need to get access to it even before async has been started if the call didn't actually end
        * up being asynchronous.
        */
-       public function getNextAsync() : Object
+       public function getFreshAsyncs() : Array
        {
-           return asyncMethods.shift();
+	   return asyncMethods.filter(function(item:*, index:int, array:Array) : Boolean {
+		   return item.phase == "fresh";
+	       });
+       }
+   //------------------------------------------------------------------------------
+      /**
+       * The AsyncTestHelper will call this after async method is invoked,
+       * it will need to get access to it even before async has been started if the call didn't actually end
+       * up being asynchronous.
+       */
+       public function removeAsync(asyncId:int) : void
+       {
+	   var index:Number = -1;
+	   asyncMethods.forEach(function(element:*, i:Number, arr:Array) : void {
+		   if(element.asyncId == asyncId) {
+		       index = i;
+		   }
+	       });
+
+	   if (-1 != index) {
+	       asyncMethods.splice(index, 1);
+	   }
        }
 
    //------------------------------------------------------------------------------
@@ -391,6 +417,7 @@ package flexunit.framework
        */
        public var methodName : String;
        private var asyncMethods : Array;
+       private var asyncCount : int = 0;
        private var asyncTestHelper : AsyncTestHelper;
        private var testResult : TestResult;
        private var _assertionsMade : Number = 0;

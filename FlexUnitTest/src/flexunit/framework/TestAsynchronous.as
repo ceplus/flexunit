@@ -142,6 +142,34 @@ package flexunit.framework
            var result : TestResult = test.run();
            initAsync(result, 1, 1, 0);
        }
+
+       public function testHandleEventForMultipleListenersOrdered() : void
+       {
+           var test : TestCase = new AsynchronousTestCase("testHandleEventForMultipleListenersOrdered");
+           var result : TestResult = test.run();
+           initAsync(result, 1, 0, 0);
+       }
+
+       public function testHandleEventForMultipleListenersReverse() : void
+       {
+           var test : TestCase = new AsynchronousTestCase("testHandleEventForMultipleListenersReverse");
+           var result : TestResult = test.run();
+           initAsync(result, 1, 0, 0);
+       }
+
+       public function testTimeoutFunctionCalledTwiceInOrder() : void
+       {
+           var test : TestCase = new AsynchronousTestCase("testTimeoutFunctionCalledTwiceInOrder");
+           var result : TestResult = test.run();
+           initAsync(result, 1, 0, 0);
+       }
+
+       public function testHandleEventAfterFirstEvent() : void
+       {
+           var test : TestCase = new AsynchronousTestCase("testHandleEventAfterFirstEvent");
+           var result : TestResult = test.run();
+           initAsync(result, 1, 0, 0);
+       }
    
        public function shouldBeRun(event : Event, passedData : Object) : void
        {

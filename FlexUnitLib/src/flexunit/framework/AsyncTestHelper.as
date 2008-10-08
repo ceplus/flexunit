@@ -40,22 +40,19 @@ package flexunit.framework
        {
            this.testCase = testCase;
            this.testResult = testResult;
-           timer = new Timer( 100 );
-           timer.addEventListener( TimerEvent.TIMER, timerHandler );
        }
 
    //------------------------------------------------------------------------------
 
        public function startAsync() : void
        {
-           loadAsync();
-           if ( objToPass != null )
+	   if (0 < receivedCalls.length)
            {
                testResult.continueRun( testCase );
            }
            else
            {
-               timer.start();
+	       loadAsync();
            }
        }
 
@@ -64,79 +61,100 @@ package flexunit.framework
 
        public function loadAsync() : void
        {
-           var async : Object = testCase.getNextAsync();
-
-           func = async.func;
-
-           extraData = async.extraData;
-
-           failFunc = async.failFunc;
-
+           var freshes : Array = testCase.getFreshAsyncs();
            //BUG 114824 WORKAROUND
-           timer = new Timer( async.timeout, 1 );
-
-           timer.addEventListener( TimerEvent.TIMER, timerHandler );
+	   freshes.forEach(function(async:*, index:int, array:Array) : void {
+		   if (!async.timer)
+		   {
+		       async.timer = new Timer( async.timeout, 1 );
+		       async.timer.addEventListener( TimerEvent.TIMER, 
+						     function(event:TimerEvent) : void { timerHandler(event, async); } );
+		       async.timer.start();
+		   }
+	       });
            //END WORKAROUND
-
-           timer.delay = async.timeout;
        }
 
    //------------------------------------------------------------------------------
 
        public function runNext() : void
        {
-           if ( shouldFail )
-           {
-               if ( failFunc != null )
-               {
-                   failFunc( extraData );
-               }
-               else
-               {
-                   Assert.fail( StringUtil.substitute( AssertStringFormats.ASYNC_CALL_NOT_FIRED, timer.delay ) );
-               }
-           }
-           else
-           {
+	   var call : Object = receivedCalls.shift();
+
+	   var phase:String = call.async.phase;
+	   call.async.phase = "done";
+
+	   switch (phase)
+	   {
+	   case "fresh": {
+	       var extraData : Object = call.async.extraData;
+	       var func  : Function = call.async.func;
+	       var objToPass : Array = call.args;
+
                if ( extraData != null )
                {
 		   objToPass.push(extraData);
                }
 
-	       func.apply(this, objToPass )
-
-               func = null;
-               objToPass = null;
-               extraData = null;
-           }
+	       func.apply(this, objToPass);
+	   }    break;
+	   case "failed": {
+	       var failFunc:Function = call.async.failFunc;
+	       var failExtraData:Object = call.async.extraData;
+	       if (null != failFunc)
+	       { 
+		   failFunc( failExtraData );
+	       }
+	       else
+	       {
+		   Assert.fail( StringUtil.substitute( AssertStringFormats.ASYNC_CALL_NOT_FIRED, 
+						       call.async.timer.delay ) );
+ 	       }
+	   }   break;
+	   case "done":
+	   default:
+	       break;
+	   }
        }
 
    //------------------------------------------------------------------------------
 
-       public function timerHandler( event : TimerEvent ) : void
+       public function timerHandler( event : TimerEvent, async : Object ) : void
        {
-           timer.stop();
-           shouldFail = true;
-           testResult.continueRun( testCase );
+	   (async.timer as Timer).stop();
+	   async.phase = "failed";
+	   receivedCalls.push({args: null, async: async});
+	   testResult.continueRun( testCase );
        }
 
    //------------------------------------------------------------------------------
 
-       public function handleEvent(... rest) : void
+       public function handleEvent(async : Object, args:Array) : void
        {
-           var wasReallyAsync : Boolean = timer.running;
+	   var wasReallyAsync : Boolean = false;
 
-           timer.stop();
+	   if (async.timer)
+	   {
+	       wasReallyAsync = (async.timer as Timer).running;
+	       (async.timer as Timer).stop();
+	   }
 
-           if ( shouldFail )
-               return;
+	   if (async.phase == "fresh")
+	   {
+	       receivedCalls.push({args: args, async: async});
 
-           objToPass = rest;
-           if ( wasReallyAsync )
-           {
-               testResult.continueRun( testCase );
-           }
+	       if ( wasReallyAsync )
+	       {
+		   testResult.continueRun( testCase );
+	       }
+	   }
        }
+
+       public function makeHandleEventFor(async : Object) : Function
+       {
+	   return function (... rest) : void { handleEvent(async, rest); };
+       }
+
 
    //------------------------------------------------------------------------------
 
@@ -145,15 +163,8 @@ package flexunit.framework
    //------------------------------------------------------------------------------
 
        private var testCase : TestCase;
-       private var func : Function;
-       private var extraData : Object;
-       private var failFunc : Function;
        private var testResult : TestResult;
 
-       private var shouldFail : Boolean = false;
-       private var objToPass : Array;
-
-       private var timer : Timer;
-
+       private var receivedCalls:Array = [];
    }
 }
