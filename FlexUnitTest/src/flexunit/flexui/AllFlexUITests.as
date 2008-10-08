@@ -41,7 +41,7 @@ package flexunit.flexui
    		var testSuite : TestSuite = new TestSuite();		
 
    		testSuite.addTestSuite( TestTestRunnerPresentationModel );
-   		testSuite.addTestSuite( TestTestFunctionRowData );
+   		//testSuite.addTestSuite( TestTestFunctionRowData );
    		testSuite.addTestSuite( TestTestCaseData );
    		testSuite.addTestSuite( TestAbstractRowData );
    		testSuite.addTestSuite( TestFlexUnitLabels );
