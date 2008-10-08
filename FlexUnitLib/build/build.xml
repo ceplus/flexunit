@@ -1,0 +1,127 @@
+<?xml version="1.0"?>
+<project name="flexunit" basedir="../../" default="createFlexUnitLib">
+
+	<!-- Define variables/paths used in this build script -->
+	<property file="./FlexUnitLib/build/build.properties" />
+
+	<!--
+		Have you edit the properties file to make sure the paths are right oo your system?
+	-->
+	<target name="checkProperties">
+		<fail unless="asdoc.exe">The "asdoc.exe" property must be set in ${build.dir}/build.properties.</fail>
+		<fail unless="compc.exe">The "compc.exe" property must be set in ${build.dir}/build.properties.</fail>
+		<fail unless="mxmlc.exe">The "mxmlc.exe" property must be set in ${build.dir}/build.properties.</fail>
+	</target>
+	
+	<target name="makeDirs" description="makes the directories for the deploy" >
+			<mkdir dir="${distrib.dir}"/>
+	</target>
+	
+	<target name="checkOS">
+		<condition property="isWindows">
+      		<os family="windows"/>
+		</condition>
+		<condition property="isMac">
+      		<os family="mac"/>
+		</condition>
+	</target>
+	
+	<!--
+		Compile the unit tests for the library, placing the test runner .swf file
+		in the test bin directory.
+		
+		Need to compile with debug on for all tests to pass, due to stack traces.
+		Turn debugging on in flex-config.xml
+	-->
+	<target name="compileTests" depends="checkProperties">
+		<exec executable="${mxmlc.exe}" dir="${basedir}">
+			<!-- Point to the main test runner's application mxml file -->
+			<arg line="'${tests.src.dir}/${testRunner.name}.mxml'" />
+			
+			<!-- Place the built .swf file in the "bin" directory -->
+			<arg line="-output '${tests.bin.dir}/${testRunner.name}.swf'" />
+						
+			<!-- Define source directories for "src" and "tests" -->
+			<arg line="-compiler.source-path ${src.dir}" />
+			<arg line="-compiler.source-path ${tests.src.dir}" />
+			
+			<!-- Include the necessary framework libraries in the class path -->
+			<arg line="-compiler.library-path '${flexsdk.lib.dir}'" />
+			
+			<!-- Include in the flexunit.swc in the class path -->
+			<arg line="-compiler.library-path ${flexunit.swc}" />
+
+			<!-- Include locale-specific items in the path -->
+			<arg line="-locale ${flexsdk.locale}" />
+			<arg line="-compiler.library-path '${flexsdk.locale.dir}'" />
+		</exec>
+	</target>
+	
+	<!--
+		Runs the unit tests for the library in the stand-alone Flash Player
+	-->
+	<target name="runTests" depends="runTestsWindows, runTestsMac" />
+			
+	<target name="runTestsWindows" if="isWindows" depends="checkOS, compileTests" >
+		<exec executable="${flashDebugPlayer.exe}" spawn="yes">
+			<arg line="${tests.bin.dir}/${testRunner.name}.swf" />
+		</exec>
+	</target>
+
+	<target name="runTestsMac" if="isMac" depends="checkOS, compileTests" >		
+		<exec executable="open" vmlauncher="true" spawn="false" failonerror="true">
+			<arg line="-a '${flashDebugPlayer.exe}'" />
+			<arg line="${tests.bin.dir}/${testRunner.name}.swf" />
+		</exec>
+	</target>
+
+	<!--
+		Compile all of the classes under the "src" tree into a .swc file
+	-->
+	<target name="createFlexUnitLib" depends="checkProperties">
+		<exec executable="${compc.exe}" dir="${basedir}">
+			<!-- Specify the name of the output file -->
+			<arg line="-output '${bin.dir}/${library.name}.swc'" />
+			
+			<!-- Specify the main source path as "src" -->
+			<arg line="-compiler.source-path '${src.dir}'" />
+			
+			<!-- Include all of the classes in the "src" tree -->
+			<arg line="-include-sources '${src.dir}' --" />
+		</exec>
+	</target>
+	
+	<!--
+		Generate ASDoc output for the library
+	-->
+	<target name="createASDoc" depends="checkProperties">
+		<!-- Clean out the contents of the doc directory, without delete "docs" -->
+		<!--
+		<delete includeemptydirs="true">
+			<fileset dir="${docs.dir}" includes="**/*" />
+		</delete>
+		-->
+		
+		<exec executable="${asdoc.exe}" spawn="no">
+			<!-- Place the documentation in the "docs" directory -->
+			<arg line="-output ${docs.dir}" />
+			
+			<!-- Specify the main source path as "src" -->
+			<arg line="-compiler.source-path ${src.dir}" />
+			
+			<!-- Document all of the classes in the "src" tree -->
+			<arg line="-doc-sources ${src.dir} " />
+			
+			<!-- Include the library name in the window title -->
+			<arg line="-window-title 'FlexUnit' "/>
+		</exec>
+	</target>
+	
+	<target name="createDistribution" description="Creates the distribution" depends="makeDirs, createFlexUnitLib, createASDoc" >
+	   <zip destfile="${distrib.dir}/${distrib.name}">
+		   <zipfileset dir="${bin.dir}" prefix="bin" />
+		   <zipfileset dir="${docs.dir}" prefix="asdoc" />
+	   </zip>
+	</target>
+
+</project>

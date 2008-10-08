@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<flexLibProperties version="1">
+<includeClasses>
+<classEntry path="flexunit.framework.AssertStringFormats"/>
+<classEntry path="flexunit.utils.ArrayList"/>
+<classEntry path="flexunit.flexui.patterns.AssertEventOcurredPattern"/>
+<classEntry path="flexunit.utils.Collection"/>
+<classEntry path="flexunit.flexui.IFlexWriter"/>
+<classEntry path="flexunit.flexui.controls.FlexUnitLabels"/>
+<classEntry path="flexunit.flexui.patterns.AssertNotNullPattern"/>
+<classEntry path="flexunit.flexui.TestRunnerBase"/>
+<classEntry path="flexunit.flexui.patterns.AssertNoMatchPattern"/>
+<classEntry path="flexunit.flexui.patterns.AbstractPattern"/>
+<classEntry path="flexunit.framework.AssertionFailedError"/>
+<classEntry path="flexunit.flexui.data.filter.ITestFunctionStatus"/>
+<classEntry path="flexunit.flexui.patterns.FailAsyncCallPattern"/>
+<classEntry path="flexunit.flexui.controls.PromptingTextInput"/>
+<classEntry path="flexunit.flexui.data.filter.EmptyTestFunctionStatus"/>
+<classEntry path="flexunit.framework.WarningTestCase"/>
+<classEntry path="flexunit.flexui.patterns.AssertMatchPattern"/>
+<classEntry path="flexunit.framework.TestFailure"/>
+<classEntry path="flexunit.flexui.controls.RightHandSide"/>
+<classEntry path="flexunit.framework.TestSuiteTestListener"/>
+<classEntry path="flexunit.flexui.patterns.AssertEqualsPattern"/>
+<classEntry path="flexunit.flexui.patterns.AssertNotUndefinedPattern"/>
+<classEntry path="flexunit.flexui.event.TestsCompleteEvent"/>
+<classEntry path="flexunit.flexui.data.TestRunnerBasePresentationModel"/>
+<classEntry path="flexunit.framework.TestListener"/>
+<classEntry path="flexunit.flexui.controls.right.SelectedTestCaseForm"/>
+<classEntry path="flexunit.flexui.data.AbstractRowData"/>
+<classEntry path="flexunit.flexui.controls.Title"/>
+<classEntry path="flexunit.flexui.patterns.AssertUndefinedPattern"/>
+<classEntry path="flexunit.framework.ProtectedStartTestCase"/>
+<classEntry path="flexunit.flexui.controls.left.FilterArea"/>
+<classEntry path="flexunit.framework.TestSuite"/>
+<classEntry path="flexunit.flexui.patterns.AssertNotContainedPattern"/>
+<classEntry path="flexunit.flexui.controls.left.itemRenderer.TestResultTreeItemRenderer"/>
+<classEntry path="flexunit.flexui.data.FilterTestsModel"/>
+<classEntry path="flexunit.framework.TestCase"/>
+<classEntry path="flexunit.framework.Test"/>
+<classEntry path="flexunit.framework.TestResult"/>
+<classEntry path="flexunit.framework.ProtectedFinishTestCase"/>
+<classEntry path="flexunit.flexui.data.filter.TestfFunctionStatuses"/>
+<classEntry path="flexunit.flexui.data.TestFunctionRowData"/>
+<classEntry path="flexunit.flexui.data.filter.AllTestFunctionStatus"/>
+<classEntry path="flexunit.framework.Protectable"/>
+<classEntry path="flexunit.textui.ResultPrinter"/>
+<classEntry path="flexunit.flexui.data.filter.ErrorTestFunctionStatus"/>
+<classEntry path="flexunit.textui.TestRunner"/>
+<classEntry path="flexunit.framework.Reflective"/>
+<classEntry path="flexunit.framework.Assert"/>
+<classEntry path="flexunit.flexui.controls.right.StackTraceContainer"/>
+<classEntry path="flexunit.flexui.patterns.AssertNullPattern"/>
+<classEntry path="flexunit.framework.ProtectedMiddleTestCase"/>
+<classEntry path="flexunit.flexui.patterns.AssertContainedPattern"/>
+<classEntry path="flexunit.flexui.TestRunner"/>
+<classEntry path="flexunit.framework.AsyncTestHelper"/>
+<classEntry path="flexunit.flexui.controls.LeftHandSide"/>
+<classEntry path="flexunit.flexui.controls.left.events.SearchBarEvent"/>
+<classEntry path="FlexUnitTestRunnerApplication"/>
+<classEntry path="flexunit.flexui.controls.right.TestsComplete"/>
+<classEntry path="flexunit.utils.Iterator"/>
+<classEntry path="flexunit.utils.CollectionIterator"/>
+<classEntry path="flexunit.runner.BaseTestRunner"/>
+<classEntry path="flexunit.flexui.event.TestRunnerBasePresentationModelProperyChangedEvent"/>
+<classEntry path="flexunit.framework.EventfulTestCase"/>
+<classEntry path="flexunit.flexui.data.TestCaseData"/>
+<classEntry path="flexunit.flexui.controls.right.RunningTests"/>
+<classEntry path="flexunit.flexui.controls.left.TestCasesTree"/>
+</includeClasses>
+<includeResources/>
+<namespaceManifests/>
+</flexLibProperties>
